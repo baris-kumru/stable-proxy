@@ -33,7 +33,11 @@ app.post('/generate', async (req, res) => {
 
     res.json({ image: response.data.image });
   } catch (error) {
-    console.error('API error:', error?.response?.data || error.message);
+    if (error?.response?.data instanceof Buffer) {
+      console.error('API error:', error.response.data.toString('utf8'));
+    } else {
+      console.error('API error:', error?.response?.data || error.message);
+    }
     res.status(500).json({ error: 'Image generation failed.' });
   }
 });
