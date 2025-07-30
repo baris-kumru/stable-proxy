@@ -13,26 +13,25 @@ app.use(express.json());
 app.post('/generate', async (req, res) => {
   const { prompt } = req.body;
 
-  const formData = new FormData();
-  formData.append('prompt', prompt);
-  formData.append('aspect_ratio', '1:1');
-  formData.append('output_format', 'png');
-
   try {
+    const form = new FormData();
+    form.append('prompt', prompt);
+    form.append('aspect_ratio', '1:1');
+    form.append('output_format', 'png');
+
     const response = await axios.post(
       'https://api.stability.ai/v2beta/stable-image/generate/core',
-      formData,
+      form,
       {
         headers: {
+          ...form.getHeaders(),
           Authorization: `Bearer ${STABILITY_API_KEY}`,
-          ...formData.getHeaders()
-        },
-        responseType: 'arraybuffer'
+          Accept: 'application/json',
+        }
       }
     );
 
-    const base64Image = Buffer.from(response.data).toString('base64');
-    res.json({ image: `data:image/png;base64,${base64Image}` });
+    res.json({ image: response.data.image });
   } catch (error) {
     console.error('API error:', error?.response?.data || error.message);
     res.status(500).json({ error: 'Image generation failed.' });
