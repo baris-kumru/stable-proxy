@@ -4,7 +4,9 @@ import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
+
+// API anahtarını doğrudan buraya yazıyoruz:
+const STABILITY_API_KEY = 'sk-qq80OXO7gOHGlcKtkbx09GE8iqlR6eNlRcdrxHDIBBcDChfx';
 
 app.use(cors());
 app.use(express.json());
