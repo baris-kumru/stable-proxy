@@ -1,12 +1,11 @@
 import express from 'express';
 import axios from 'axios';
 import cors from 'cors';
+import FormData from 'form-data';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// API anahtarını doğrudan buraya yazıyoruz:
-const STABILITY_API_KEY = 'sk-qq80OXO7gOHGlcKtkbx09GE8iqlR6eNlRcdrxHDIBBcDChfx';
+const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
 
 app.use(cors());
 app.use(express.json());
@@ -14,30 +13,26 @@ app.use(express.json());
 app.post('/generate', async (req, res) => {
   const { prompt } = req.body;
 
+  const formData = new FormData();
+  formData.append('prompt', prompt);
+  formData.append('aspect_ratio', '1:1');
+  formData.append('output_format', 'png');
+
   try {
     const response = await axios.post(
       'https://api.stability.ai/v2beta/stable-image/generate/core',
-      {
-        prompt,
-        output_format: 'png',
-        aspect_ratio: '1:1'
-      },
+      formData,
       {
         headers: {
           Authorization: `Bearer ${STABILITY_API_KEY}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        }
+          ...formData.getHeaders()
+        },
+        responseType: 'arraybuffer'
       }
     );
 
-    const imageBase64 = response.data?.artifacts?.[0]?.base64;
-
-    if (!imageBase64) {
-      throw new Error('Image data not found in response.');
-    }
-
-    res.json({ image: imageBase64 });
+    const base64Image = Buffer.from(response.data).toString('base64');
+    res.json({ image: `data:image/png;base64,${base64Image}` });
   } catch (error) {
     console.error('API error:', error?.response?.data || error.message);
     res.status(500).json({ error: 'Image generation failed.' });
