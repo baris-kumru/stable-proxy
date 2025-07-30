@@ -31,7 +31,13 @@ app.post('/generate', async (req, res) => {
       }
     );
 
-    res.json({ image: response.data.image });
+    const imageBase64 = response.data?.artifacts?.[0]?.base64;
+
+    if (!imageBase64) {
+      throw new Error('Image data not found in response.');
+    }
+
+    res.json({ image: imageBase64 });
   } catch (error) {
     console.error('API error:', error?.response?.data || error.message);
     res.status(500).json({ error: 'Image generation failed.' });
